@@ -7,20 +7,8 @@ import {Solarray} from "solarray/Solarray.sol";
 import {LibString} from "solady/src/utils/LibString.sol";
 import {SSTORE2} from "solady/src/utils/SSTORE2.sol";
 
-///@notice Bitmap type for storing allowed editors
-type Editors is uint8;
-
 ///@notice alias type for storing and loading TraitLabels using SSTORE2
 type StoredTraitLabel is address;
-
-///@notice Enumeration of allowed editor roles
-enum AllowedEditor {
-    Anyone,
-    Self,
-    TokenOwner,
-    Custom,
-    ContractOwner
-}
 
 ///@notice Struct associating a bytes32 traitValue to its string representation
 struct FullTraitValue {
@@ -40,16 +28,12 @@ struct TraitLabel {
     FullTraitValue[] fullTraitValues;
     // The display type for the trait
     DisplayType displayType;
-    // The list of editors allowed to set the trait
-    Editors editors;
     // Whether the trait is required to have a value
     bool required;
 }
 
-// Pack allowedEditors and valueRequiresValidation (for writes) plus storageAddress (for reads) into a single slot
+// Pack valueRequiresValidation (for writes) plus storageAddress (for reads) into a single slot
 struct TraitLabelStorage {
-    // The bitmap of editors allowed to set the trait
-    Editors allowedEditors;
     // true if TraitLabel.required == true
     bool required;
     // true if TraitLabel.acceptableValues.length != 0
@@ -215,8 +199,7 @@ library TraitLabelLib {
                 json.property("traitLabel", label.traitLabel),
                 json.rawProperty("acceptableValues", TraitLib.toJson(label.acceptableValues)),
                 json.rawProperty("fullTraitValues", FullTraitValueLib.toJson(label.fullTraitValues)),
-                json.property("displayType", Metadata.toString(label.displayType)),
-                json.rawProperty("editors", EditorsLib.toJson(label.editors))
+                json.property("displayType", Metadata.toString(label.displayType))
             )
         );
     }
@@ -284,90 +267,6 @@ library TraitLib {
     }
 }
 
-library EditorsLib {
-    /**
-     * @notice Convert an array of AllowedEditor enum values to an Editors bitmap
-     */
-    function aggregate(AllowedEditor[] memory editors) internal pure returns (Editors) {
-        uint256 editorsLength = editors.length;
-        uint256 result;
-        for (uint256 i = 0; i < editorsLength;) {
-            result |= 1 << uint8(editors[i]);
-            unchecked {
-                ++i;
-            }
-        }
-        return Editors.wrap(uint8(result));
-    }
-
-    /**
-     * @notice Convert an Editors bitmap to an array of AllowedEditor enum values
-     */
-    function expand(Editors editors) internal pure returns (AllowedEditor[] memory allowedEditors) {
-        uint8 _editors = Editors.unwrap(editors);
-        if (_editors & 1 == 1) {
-            allowedEditors = new AllowedEditor[](1);
-            allowedEditors[0] = AllowedEditor.Anyone;
-            return allowedEditors;
-        }
-        // optimistically allocate 4 slots
-        AllowedEditor[] memory result = new AllowedEditor[](4);
-        uint256 num;
-        for (uint256 i = 1; i < 5;) {
-            bool set = _editors & (1 << i) != 0;
-            if (set) {
-                result[num] = AllowedEditor(i);
-                unchecked {
-                    ++num;
-                }
-            }
-            unchecked {
-                ++i;
-            }
-        }
-        ///@solidity memory-safe-assembly
-        assembly {
-            mstore(result, num)
-        }
-        return result;
-    }
-
-    /**
-     * @notice Convert an AllowedEditor enum value to its corresponding bit in an Editors bitmap
-     */
-    function toBitMap(AllowedEditor editor) internal pure returns (uint8) {
-        return uint8(1 << uint256(editor));
-    }
-
-    /**
-     * @notice Check if an Editors bitmap contains a given AllowedEditor
-     */
-    function contains(Editors self, AllowedEditor editor) internal pure returns (bool) {
-        return Editors.unwrap(self) & toBitMap(editor) != 0;
-    }
-
-    /**
-     * @notice Convert an Editors bitmap to a JSON array of numbers
-     */
-    function toJson(Editors editors) internal pure returns (string memory) {
-        return toJson(expand(editors));
-    }
-
-    /**
-     * @notice Convert an array of AllowedEditors to a JSON array of numbers
-     */
-    function toJson(AllowedEditor[] memory editors) internal pure returns (string memory) {
-        string[] memory result = new string[](editors.length);
-        for (uint256 i = 0; i < editors.length;) {
-            result[i] = LibString.toString(uint8(editors[i]));
-            unchecked {
-                ++i;
-            }
-        }
-        return json.arrayOf(result);
-    }
-}
-
 library StoredTraitLabelLib {
     /**
      * @notice Check that a StoredTraitLabel is not the zero address, ie, that it exists
@@ -385,5 +284,4 @@ library StoredTraitLabelLib {
     }
 }
 
-using EditorsLib for Editors global;
 using StoredTraitLabelLib for StoredTraitLabel global;

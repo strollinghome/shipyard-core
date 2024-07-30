@@ -6,17 +6,19 @@ import {json} from "../onchain/json.sol";
 import {svg} from "../onchain/svg.sol";
 import {LibString} from "solady/src/utils/LibString.sol";
 import {Solarray} from "solarray/Solarray.sol";
+import {Ownable} from "solady/src/auth/Ownable.sol";
 import {Metadata} from "../onchain/Metadata.sol";
 
-import {OnchainTraits, DynamicTraits} from "../dynamic-traits/OnchainTraits.sol";
+import {OnchainTraits, DynamicTraits, TraitLabel} from "../dynamic-traits/OnchainTraits.sol";
 
-abstract contract AbstractNFT is OnchainTraits, ERC721ConduitPreapproved_Solady {
+abstract contract AbstractNFT is Ownable, OnchainTraits, ERC721ConduitPreapproved_Solady {
     string _name;
     string _symbol;
 
     constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
+        _initializeOwner(msg.sender);
     }
 
     function name() public view virtual override returns (string memory) {
@@ -25,6 +27,10 @@ abstract contract AbstractNFT is OnchainTraits, ERC721ConduitPreapproved_Solady 
 
     function symbol() public view virtual override returns (string memory) {
         return _symbol;
+    }
+
+    function setTraitLabel(bytes32 traitKey, TraitLabel calldata _traitLabel) public onlyOwner {
+        _setTraitLabel(traitKey, _traitLabel);
     }
 
     /**
