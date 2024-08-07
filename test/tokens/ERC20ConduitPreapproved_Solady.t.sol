@@ -2,8 +2,8 @@
 pragma solidity ^0.8.17;
 
 import {Test} from "forge-std/Test.sol";
-import {TestPlus} from "solady/test/utils/TestPlus.sol";
-import {ERC20} from "solady/src/tokens/ERC20.sol";
+import {TestPlus} from "solady/../test/utils/TestPlus.sol";
+import {ERC20} from "solady/tokens/ERC20.sol";
 import {ERC20_Solady} from "src/reference/tokens/erc20/ERC20Preapproved_Solady.sol";
 import {CONDUIT, SOLADY_ERC20_PERMIT_TYPEHASH} from "src/lib/Constants.sol";
 import {IPreapprovalForAll} from "src/interfaces/IPreapprovalForAll.sol";

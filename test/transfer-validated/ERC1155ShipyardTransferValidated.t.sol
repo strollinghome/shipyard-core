@@ -2,8 +2,8 @@
 pragma solidity ^0.8.17;
 
 import {Test} from "forge-std/Test.sol";
-import {TestPlus} from "solady/test/utils/TestPlus.sol";
-import {Ownable} from "solady/src/auth/Ownable.sol";
+import {TestPlus} from "solady/../test/utils/TestPlus.sol";
+import {Ownable} from "solady/auth/Ownable.sol";
 import {ICreatorToken} from "src/interfaces/transfer-validated/ICreatorToken.sol";
 import {ITransferValidator1155} from "src/interfaces/transfer-validated/ITransferValidator.sol";
 import {MockTransferValidator} from "./mock/MockTransferValidator.sol";

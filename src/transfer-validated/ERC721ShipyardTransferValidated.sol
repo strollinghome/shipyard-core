@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {Ownable} from "solady/src/auth/Ownable.sol";
-import {ERC721} from "solady/src/tokens/ERC721.sol";
+import {Ownable} from "solady/auth/Ownable.sol";
+import {ERC721} from "solady/tokens/ERC721.sol";
 import {ERC721ConduitPreapproved_Solady} from "../tokens/erc721/ERC721ConduitPreapproved_Solady.sol";
 import {TokenTransferValidator, TokenTransferValidatorStorage} from "./lib/TokenTransferValidator.sol";
 import {ICreatorToken} from "../interfaces/transfer-validated/ICreatorToken.sol";

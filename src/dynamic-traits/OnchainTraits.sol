@@ -3,8 +3,8 @@ pragma solidity ^0.8.17;
 
 import {DynamicTraits} from "./DynamicTraits.sol";
 import {Metadata} from "../onchain/Metadata.sol";
-import {SSTORE2} from "solady/src/utils/SSTORE2.sol";
-import {EnumerableSet} from "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
+import {SSTORE2} from "solady/utils/SSTORE2.sol";
+import {EnumerableSet} from "openzeppelin-contracts/utils/structs/EnumerableSet.sol";
 import {
     TraitLabelStorage,
     TraitLabelStorageLib,
@@ -51,15 +51,15 @@ abstract contract OnchainTraits is DynamicTraits {
      * @notice Get the raw JSON for the trait metadata
      */
     function _getTraitMetadataJson() internal view returns (string memory) {
-        bytes32[] memory keys = OnchainTraitsStorage.layout()._traitKeys.values();
-        return TraitLabelStorageLib.toLabelJson(OnchainTraitsStorage.layout()._traitLabelStorage, keys);
+        bytes32[] memory keys = _traitLabelKeys().values();
+        return TraitLabelStorageLib.toLabelJson(_traitLabelStorage(), keys);
     }
 
     /**
      * @notice Return trait label storage information at a given key.
      */
     function traitLabelStorage(bytes32 traitKey) external view returns (TraitLabelStorage memory) {
-        return OnchainTraitsStorage.layout()._traitLabelStorage[traitKey];
+        return _traitLabelStorage()[traitKey];
     }
 
     /**
@@ -70,7 +70,7 @@ abstract contract OnchainTraits is DynamicTraits {
      * @param newValue The new trait value
      */
     function setTrait(uint256 tokenId, bytes32 traitKey, bytes32 newValue) public virtual override {
-        TraitLabelStorage memory labelStorage = OnchainTraitsStorage.layout()._traitLabelStorage[traitKey];
+        TraitLabelStorage memory labelStorage = _traitLabelStorage()[traitKey];
         StoredTraitLabel storedTraitLabel = labelStorage.storedLabel;
         if (!StoredTraitLabelLib.exists(storedTraitLabel)) {
             revert TraitDoesNotExist(traitKey);
@@ -87,8 +87,8 @@ abstract contract OnchainTraits is DynamicTraits {
      *         valuesRequireValidation? into a single storage slot for more efficient validation when setting trait values.
      */
     function _setTraitLabel(bytes32 traitKey, TraitLabel memory _traitLabel) internal virtual {
-        OnchainTraitsStorage.layout()._traitKeys.add(traitKey);
-        OnchainTraitsStorage.layout()._traitLabelStorage[traitKey] = TraitLabelStorage({
+        _traitLabelKeys().add(traitKey);
+        _traitLabelStorage()[traitKey] = TraitLabelStorage({
             required: _traitLabel.required,
             valuesRequireValidation: _traitLabel.acceptableValues.length > 0,
             storedLabel: TraitLabelLib.store(_traitLabel)
@@ -103,7 +103,7 @@ abstract contract OnchainTraits is DynamicTraits {
      * @return An array of JSON objects, each representing a dynamic trait set on the token
      */
     function _dynamicAttributes(uint256 tokenId) internal view virtual returns (string[] memory) {
-        bytes32[] memory keys = OnchainTraitsStorage.layout()._traitKeys.values();
+        bytes32[] memory keys = _traitLabelKeys().values();
         uint256 keysLength = keys.length;
 
         string[] memory attributes = new string[](keysLength);
@@ -115,7 +115,7 @@ abstract contract OnchainTraits is DynamicTraits {
             // check that the trait is set, otherwise, skip it
             if (trait != bytes32(0)) {
                 attributes[num] =
-                    TraitLabelStorageLib.toAttributeJson(OnchainTraitsStorage.layout()._traitLabelStorage, key, trait);
+                    TraitLabelStorageLib.toAttributeJson(_traitLabelStorage(), key, trait);
                 unchecked {
                     ++num;
                 }
@@ -131,5 +131,13 @@ abstract contract OnchainTraits is DynamicTraits {
         }
 
         return attributes;
+    }
+
+    function _traitLabelStorage() internal view virtual returns (mapping(bytes32 traitKey => TraitLabelStorage traitLabelStorage) storage) {
+        return OnchainTraitsStorage.layout()._traitLabelStorage;
+    }
+
+    function _traitLabelKeys() internal view virtual returns (EnumerableSet.Bytes32Set storage) {
+        return OnchainTraitsStorage.layout()._traitKeys;
     }
 }
