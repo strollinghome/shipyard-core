@@ -28,14 +28,10 @@ struct TraitLabel {
     FullTraitValue[] fullTraitValues;
     // The display type for the trait
     DisplayType displayType;
-    // Whether the trait is required to have a value
-    bool required;
 }
 
 // Pack valueRequiresValidation (for writes) plus storageAddress (for reads) into a single slot
 struct TraitLabelStorage {
-    // true if TraitLabel.required == true
-    bool required;
     // true if TraitLabel.acceptableValues.length != 0
     bool valuesRequireValidation;
     // The address of the TraitLabel in contract storage, aliased as a StoredTraitLabel

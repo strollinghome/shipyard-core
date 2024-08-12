@@ -89,7 +89,6 @@ abstract contract OnchainTraits is DynamicTraits {
     function _setTraitLabel(bytes32 traitKey, TraitLabel memory _traitLabel) internal virtual {
         _traitLabelKeys().add(traitKey);
         _traitLabelStorage()[traitKey] = TraitLabelStorage({
-            required: _traitLabel.required,
             valuesRequireValidation: _traitLabel.acceptableValues.length > 0,
             storedLabel: TraitLabelLib.store(_traitLabel)
         });
@@ -114,8 +113,7 @@ abstract contract OnchainTraits is DynamicTraits {
             bytes32 trait = getTraitValue(tokenId, key);
             // check that the trait is set, otherwise, skip it
             if (trait != bytes32(0)) {
-                attributes[num] =
-                    TraitLabelStorageLib.toAttributeJson(_traitLabelStorage(), key, trait);
+                attributes[num] = TraitLabelStorageLib.toAttributeJson(_traitLabelStorage(), key, trait);
                 unchecked {
                     ++num;
                 }
@@ -133,7 +131,12 @@ abstract contract OnchainTraits is DynamicTraits {
         return attributes;
     }
 
-    function _traitLabelStorage() internal view virtual returns (mapping(bytes32 traitKey => TraitLabelStorage traitLabelStorage) storage) {
+    function _traitLabelStorage()
+        internal
+        view
+        virtual
+        returns (mapping(bytes32 traitKey => TraitLabelStorage traitLabelStorage) storage)
+    {
         return OnchainTraitsStorage.layout()._traitLabelStorage;
     }
 

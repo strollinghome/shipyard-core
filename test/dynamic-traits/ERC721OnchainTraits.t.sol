@@ -32,7 +32,6 @@ contract ERC721OnchainTraitsTest is Test {
     function testGetTraitLabel() public {
         TraitLabel memory label = _setLabel();
         TraitLabelStorage memory storage_ = token.traitLabelStorage(bytes32("testKey"));
-        assertEq(storage_.required, label.required);
         assertEq(storage_.valuesRequireValidation, false);
         TraitLabel memory retrieved = StoredTraitLabelLib.load(storage_.storedLabel);
         assertEq(label, retrieved);
@@ -70,8 +69,7 @@ contract ERC721OnchainTraitsTest is Test {
             traitLabel: "Trait Key",
             acceptableValues: new string[](0),
             fullTraitValues: new FullTraitValue[](0),
-            displayType: DisplayType.String,
-            required: false
+            displayType: DisplayType.String
         });
         token.setTraitLabel(bytes32("testKey"), label);
         return label;
@@ -83,7 +81,6 @@ contract ERC721OnchainTraitsTest is Test {
         assertEq(keccak256(abi.encode(a.acceptableValues)), keccak256(abi.encode(b.acceptableValues)));
         assertEq(keccak256(abi.encode(a.fullTraitValues)), keccak256(abi.encode(b.fullTraitValues)));
         assertEq(uint8(a.displayType), uint8(b.displayType), "displayType");
-        assertEq(a.required, b.required, "required");
     }
 
     function testBytes32ToString() public {
